@@ -3,7 +3,7 @@
 ## Purpose
 
 `onlytry` is a mobile-first training session web app.
-It generates a safe, structured workout plan and immediately drops the user into the current movement.
+It now routes between structured training, external play logging, and a rolling prescription calendar inside one mobile shell.
 
 ## Runtime Layers
 
@@ -13,6 +13,7 @@ Files:
 
 - `src/actionLibrary.js`
 - `src/workoutEngine.js`
+- `src/trainingSystem.js`
 
 Responsibilities:
 
@@ -22,12 +23,45 @@ Responsibilities:
 - preserve CSCS phase ordering
 - auto-regress movements under low fatigue conditions
 - preserve per-movement rest timing metadata for the executor
+- define the shared prescription taxonomy
+- define pure TSS and periodization logic
 
-### 2. Session UI Layer
+### 2. Global Training State Layer
+
+Files:
+
+- `src/trainingState.jsx`
+- `src/main.jsx`
+
+Responsibilities:
+
+- track app-wide mode between `TRAIN` and `PLAY`
+- track current stress score
+- store external sport logs
+- derive a fluid 7-day prescription calendar from TSS
+- expose a provider so future screens can share the same state
+
+### 3. Home Shell And View Routing Layer
 
 Files:
 
 - `src/App.jsx`
+- `src/PlayLogger.jsx`
+- `src/CalendarView.jsx`
+
+Responsibilities:
+
+- render the dual-mode segmented control
+- render bottom tab navigation
+- route Home between `TRAIN` and `PLAY`
+- route Calendar to the fluid prescription view
+- preserve the executor as one routed branch instead of flattening it into a dashboard
+
+### 4. Session UI Layer
+
+Files:
+
+- `src/WorkoutExecutor.jsx`
 
 Responsibilities:
 
@@ -40,7 +74,7 @@ Responsibilities:
 - advance automatically to the next movement when all sets are done
 - show completion state when the last movement ends
 
-### 3. Shell / Delivery Layer
+### 5. Shell / Delivery Layer
 
 Files:
 
@@ -63,12 +97,31 @@ Responsibilities:
 
 1. `App.jsx` stores the current planning preferences
 2. `generateWorkout()` receives `goal`, `timeLimit`, `fatigue`
-3. The engine filters the library and allocates movement slots by phase
-4. The engine randomizes movement selection inside each phase
-5. The engine returns:
+3. The engine resolves either a legacy goal quota or a granular prescription quota
+4. The engine filters the library and allocates movement slots by phase
+5. The engine randomizes movement selection inside each phase
+6. The engine returns:
    - `plan`
    - `tags`
    - `summary`
+
+### Global State Flow
+
+1. `TrainingStateProvider` mounts above `App`
+2. `currentTSS` starts at `30`
+3. External play sessions can be appended as structured logs
+4. Each appended log can increase `currentTSS`
+5. `calculateFluidCalendar()` derives a 7-day forward prescription array from `currentTSS`
+6. `appMode` allows future screens to branch between structured training and sport-play logging
+
+### Home Shell Flow
+
+1. `App.jsx` reads global `appMode`
+2. The top segmented control can switch between `TRAIN` and `PLAY`
+3. The bottom tab bar switches between `Home` and `Calendar`
+4. `Home + TRAIN` renders the workout executor
+5. `Home + PLAY` renders the play logger
+6. `Calendar` renders the dynamic prescription list
 
 ### Session Execution Flow
 
@@ -81,7 +134,7 @@ Responsibilities:
 7. Inter-exercise rest completion advances to the next movement automatically
 8. Completing the final movement and final rest enters the completion panel
 
-## Key Local State In `App.jsx`
+## Key Local State In `WorkoutExecutor.jsx`
 
 - `preferences`
   - current planning criteria

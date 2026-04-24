@@ -1,3 +1,5 @@
+import { PRESCRIPTIONS, getPrescriptionBackendParams } from './trainingSystem'
+
 export const phaseOrder = ['Warm-up', 'Power', 'Strength', 'Core', 'ESD']
 
 export const reservedFilters = {
@@ -13,16 +15,34 @@ export const defaultPreferences = {
   fatigue: 4,
 }
 
-const quotaMap = {
+const legacyQuotaMap = {
   strength: { 'Warm-up': 2, Power: 1, Strength: 3, Core: 1, ESD: 0 },
   esd: { 'Warm-up': 2, Power: 1, Strength: 1, Core: 1, ESD: 2 },
   mobility: { 'Warm-up': 4, Power: 0, Strength: 1, Core: 2, ESD: 0 },
 }
 
-const themeMap = {
+const legacyThemeMap = {
   strength: '神经募集与绝对力量',
   esd: '心肺耐力与高阶代谢',
   mobility: '关节活动与核心维稳',
+}
+
+function resolveQuota(goal) {
+  const prescription = getPrescriptionBackendParams(goal)
+
+  if (prescription) {
+    return prescription.phaseQuota
+  }
+
+  return legacyQuotaMap[goal] || legacyQuotaMap.strength
+}
+
+function resolveTheme(goal) {
+  if (PRESCRIPTIONS[goal]) {
+    return goal
+  }
+
+  return legacyThemeMap[goal] || goal
 }
 
 function normalizePhase(value) {
@@ -152,7 +172,8 @@ function describeDifficulty(averageDifficulty) {
 export function generateWorkout(library, preferences = defaultPreferences, filters = reservedFilters) {
   const mergedPreferences = { ...defaultPreferences, ...preferences }
   const { goal, timeLimit, fatigue } = mergedPreferences
-  const quota = quotaMap[goal] || quotaMap.strength
+  const quota = resolveQuota(goal)
+  const prescription = getPrescriptionBackendParams(goal)
   const filteredLibrary = applyWorkoutFilters(library, filters)
   const safeLibrary = fatigue <= 2
     ? filteredLibrary.filter((exercise) => !exercise.isNew && (exercise.difficulty || 2) <= 3)
@@ -197,7 +218,7 @@ export function generateWorkout(library, preferences = defaultPreferences, filte
   return {
     plan: timeCappedPlan,
     tags: {
-      theme: themeMap[goal],
+      theme: resolveTheme(goal),
       estimatedTime,
       difficultyStr: describeDifficulty(averageDifficulty),
       totalSets,
@@ -206,6 +227,7 @@ export function generateWorkout(library, preferences = defaultPreferences, filte
       goal,
       fatigue,
       timeLimit,
+      prescriptionPattern: prescription?.pattern ?? null,
       phaseBreakdown: phaseOrder
         .map((phase) => ({
           phase,

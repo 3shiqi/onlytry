@@ -11,6 +11,7 @@ Generate a single workout plan that is:
 
 ## Source Files
 
+- `src/trainingSystem.js`
 - `src/workoutEngine.js`
 - `src/actionLibrary.js`
 
@@ -22,6 +23,7 @@ Generate a single workout plan that is:
   - `strength`
   - `esd`
   - `mobility`
+  - granular prescription labels from `PRESCRIPTIONS`
 - `timeLimit`
   - `30`
   - `45`
@@ -60,6 +62,7 @@ Each exercise can carry:
   - goal
   - fatigue
   - timeLimit
+  - `prescriptionPattern`
   - phaseBreakdown
 
 ## Rules
@@ -97,6 +100,9 @@ Current quota rules:
   - Core 2
   - ESD 0
 
+Granular prescription goals can also resolve quotas through `PRESCRIPTIONS`.
+The engine normalizes lower-case CSCS keys such as `warmup` and `esd` into phase names like `Warm-up` and `ESD`.
+
 ### Fatigue Safety
 
 If `fatigue <= 2`:
@@ -128,6 +134,7 @@ Current trim behavior:
 Update this file if any of these change:
 
 - quota rules
+- prescription-to-quota mapping
 - fatigue logic
 - plan ordering
 - metadata fields used by the engine

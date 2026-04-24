@@ -7,6 +7,9 @@ Naming rule:
 - `0.1.0.md`
 - `0.1.1.md`
 - `0.2.0.md`
+- `0.2.1.md`
+- `0.3.0.md`
+- `0.4.0.md`
 
 Use release files for:
 

@@ -2,7 +2,7 @@
 
 A minimalist adaptive sports training session tracker built with React, Vite, Tailwind CSS, Lucide, and Framer Motion.
 
-Current app version: `0.2.1`
+Current app version: `0.4.0`
 
 ## Documentation
 
@@ -19,10 +19,9 @@ When code changes, update the related feature doc and `docs/CHANGELOG.md` in the
 
 Latest release highlights:
 
-- explicit rest state with per-exercise `restIntra` and `restInter`
-- circular rest countdown with `Skip Rest`
-- refresh and tag changes fully reset timers and return to the first exercise
-- `www.onlytry.cc` now redirects to `onlytry.cc`
+- dual-mode Home shell with `Train / Play` segmented toggle
+- bottom global tab navigation for Home and Calendar
+- minimalist `PlayLogger` with TSS logging and success toast
 
 ## Version Management
 
@@ -75,7 +74,12 @@ This project includes:
 
 ## Main Source Files
 
-- `src/App.jsx` - active session UI and interaction flow
+- `src/App.jsx` - dual-mode home shell and global tab routing
+- `src/WorkoutExecutor.jsx` - active session execution view
+- `src/PlayLogger.jsx` - system-external sport logging flow
+- `src/CalendarView.jsx` - 7-day fluid calendar screen
 - `src/workoutEngine.js` - adaptive workout generation engine
+- `src/trainingSystem.js` - prescriptions, TSS helpers, and periodization logic
+- `src/trainingState.jsx` - global training state provider and hook
 - `src/actionLibrary.js` - mock action library
 - `scripts/patch-rollup-native.cjs` - local Rollup build fallback patch

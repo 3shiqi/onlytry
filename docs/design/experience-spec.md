@@ -19,13 +19,14 @@ It should feel like a focused training screen.
 
 - Strictly mobile-first
 - Single-column portrait layout
-- One main movement visible at a time
+- One primary mode visible at a time
 - Fixed bottom primary action
 - Minimal secondary chrome
 
 ### Top Area
 
-- The topmost interactive row is the planning tag row
+- The topmost interactive control is a subtle segmented mode switch
+- On the Home / Train route, the planning tag row sits below the mode switch
 - Tags represent the current plan configuration, not generic navigation
 - The refresh action lives on the far right
 - A thin phase progress bar sits below the tag row
@@ -41,10 +42,12 @@ It should feel like a focused training screen.
 
 ### Bottom Area
 
+- A global Home / Calendar tab bar stays fixed at the bottom
 - Large `CHECK` button during the session
 - Circular rest countdown replaces the bottom button during recovery
 - Small `Skip Rest` button sits under the rest countdown
 - Large `REFRESH` button on completion
+- `记录系统外运动 (LOG ACTIVITY)` is the large bottom action in Play mode
 
 ## Visual Language
 
@@ -69,6 +72,7 @@ It should feel like a focused training screen.
 
 ### Motion
 
+- Mode and tab switches should feel quick and horizontal, not modal
 - Horizontal slide transition between movements
 - Horizontal slide transition should also appear when the set changes within the same movement
 - Entering and exiting rest should feel like a meaningful state change, not a silent label swap
@@ -104,6 +108,12 @@ It should feel like a focused training screen.
 - Tapping a tag opens one dropdown at a time
 - Selecting a value regenerates the session immediately
 
+### Play Logger
+
+- The play logger should keep the same quiet, bold, high-contrast tone as training mode
+- Avoid bordered dashboard cards; use spacing, typography, and pills instead
+- Success feedback should feel lightweight and immediate
+
 ### Regression
 
 - Regression only affects the current movement
@@ -120,3 +130,4 @@ It should feel like a focused training screen.
 - Do not place multiple exercises on the same screen
 - Do not demote the main metric below secondary tags or summary cards
 - Do not turn the tag row into a navigation bar
+- Do not make the play logger look like a separate product

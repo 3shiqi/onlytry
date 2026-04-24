@@ -7,7 +7,7 @@ It replaces a separate setup screen.
 
 ## Source File
 
-- `src/App.jsx`
+- `src/WorkoutExecutor.jsx`
 
 ## Current Tags
 
@@ -21,7 +21,7 @@ These are planning tags, not movement metadata tags.
 
 ## Layout Contract
 
-- Tags sit at the top of the page
+- Tags sit at the top of the training executor content, below the global mode switch
 - Tags are left-aligned in a single horizontal row
 - Refresh icon button is on the far right
 - Only one dropdown menu can be open at a time

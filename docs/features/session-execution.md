@@ -4,10 +4,11 @@
 
 The app should open directly into the first movement of the current plan.
 There is no separate confirmation screen before training starts.
+Inside the new shell, this view is the `TRAIN` mode content for the `Home` tab.
 
 ## Source File
 
-- `src/App.jsx`
+- `src/WorkoutExecutor.jsx`
 
 ## Core Behavior
 

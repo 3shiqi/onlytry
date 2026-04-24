@@ -3,6 +3,32 @@
 This file tracks human-readable project history by semantic version.
 Git remains the detailed source of truth.
 
+## [0.4.0] - 2026-04-24
+
+### Added
+
+- dual-mode home shell with a segmented `Train / Play` switch
+- global bottom tab navigation for `Home` and `Calendar`
+- a minimalist `PlayLogger` flow with sport pills, sliders, TSS logging, and success toast
+- a calendar screen for rolling 7-day prescriptions and recent play logs
+
+### Changed
+
+- the training executor now lives inside `TRAIN` mode while preserving its existing movement-first layout
+
+## [0.3.0] - 2026-04-24
+
+### Added
+
+- global training state provider with `currentTSS`, `externalLogs`, and `appMode`
+- pure TSS and dynamic periodization helpers for play load and 7-day calendar generation
+- granular `PRESCRIPTIONS` taxonomy for ankle, mobility, upper/lower structure, power, and ESD goals
+
+### Changed
+
+- app boot now mounts through `TrainingStateProvider`
+- workout quota resolution now supports both legacy goals and prescription-driven CSCS quotas
+
 ## [0.2.1] - 2026-04-24
 
 ### Changed

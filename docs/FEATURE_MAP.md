@@ -6,12 +6,14 @@ Use this file first when you want to change one isolated behavior.
 
 | Feature | Primary Code Files | Primary Doc |
 | :--- | :--- | :--- |
+| Dual-mode home shell, play logger, and calendar tab | `src/App.jsx`, `src/PlayLogger.jsx`, `src/CalendarView.jsx`, `src/WorkoutExecutor.jsx` | `features/home-shell.md` |
 | Adaptive workout engine | `src/workoutEngine.js`, `src/actionLibrary.js` | `features/workout-engine.md` |
-| Active session execution view | `src/App.jsx` | `features/session-execution.md` |
-| Top tag filters and refresh behavior | `src/App.jsx` | `features/top-tag-filters.md` |
+| Dual-mode training state and periodization | `src/trainingSystem.js`, `src/trainingState.jsx`, `src/main.jsx`, `src/workoutEngine.js` | `features/training-state.md` |
+| Active session execution view | `src/WorkoutExecutor.jsx` | `features/session-execution.md` |
+| Top tag filters and refresh behavior | `src/WorkoutExecutor.jsx` | `features/top-tag-filters.md` |
 | PWA install and deployment | `src/main.jsx`, `public/*`, `scripts/patch-rollup-native.cjs`, `package.json` | `features/pwa-and-deployment.md` |
-| App architecture and state model | `src/App.jsx`, `src/workoutEngine.js`, `src/actionLibrary.js` | `architecture/app-architecture.md` |
-| UI rules and interaction language | `src/App.jsx`, `src/index.css` | `design/experience-spec.md` |
+| App architecture and state model | `src/App.jsx`, `src/WorkoutExecutor.jsx`, `src/PlayLogger.jsx`, `src/CalendarView.jsx`, `src/main.jsx`, `src/trainingState.jsx`, `src/trainingSystem.js`, `src/workoutEngine.js`, `src/actionLibrary.js` | `architecture/app-architecture.md` |
+| UI rules and interaction language | `src/App.jsx`, `src/WorkoutExecutor.jsx`, `src/PlayLogger.jsx`, `src/CalendarView.jsx`, `src/index.css` | `design/experience-spec.md` |
 | Formal version management | `VERSION`, `package.json`, `package-lock.json`, `scripts/check-version-sync.cjs` | `process/versioning-policy.md` |
 
 ## Update Rules
