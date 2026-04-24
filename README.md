@@ -2,7 +2,7 @@
 
 A minimalist adaptive sports training session tracker built with React, Vite, Tailwind CSS, Lucide, and Framer Motion.
 
-Current app version: `0.2.0`
+Current app version: `0.2.1`
 
 ## Documentation
 
@@ -22,6 +22,7 @@ Latest release highlights:
 - explicit rest state with per-exercise `restIntra` and `restInter`
 - circular rest countdown with `Skip Rest`
 - refresh and tag changes fully reset timers and return to the first exercise
+- `www.onlytry.cc` now redirects to `onlytry.cc`
 
 ## Version Management
 

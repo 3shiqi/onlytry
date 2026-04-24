@@ -39,6 +39,8 @@ Current production host:
 
 - Cloudflare Pages
 - custom domain: `onlytry.cc`
+- alias domain: `www.onlytry.cc`
+- canonical host redirect: `www.onlytry.cc` -> `onlytry.cc`
 
 ## Build Contract
 
@@ -71,6 +73,7 @@ Update this file if any of these change:
 
 - deployment platform
 - custom domain
+- canonical host redirect
 - build command
 - service worker strategy
 - install flow

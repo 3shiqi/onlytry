@@ -3,6 +3,13 @@
 This file tracks human-readable project history by semantic version.
 Git remains the detailed source of truth.
 
+## [0.2.1] - 2026-04-24
+
+### Changed
+
+- added a canonical-host redirect so `www.onlytry.cc` immediately redirects to `onlytry.cc`
+- linked `www.onlytry.cc` to the Cloudflare Pages project so both hostnames can resolve to the app
+
 ## [0.2.0] - 2026-04-24
 
 ### Added
