@@ -1,9 +1,13 @@
 {
   "name": "onlytry",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
+    "version:check": "node scripts/check-version-sync.cjs",
+    "version:current": "node -p \"require('./package.json').version\"",
+    "postinstall": "node scripts/patch-rollup-native.cjs",
+    "prebuild": "node scripts/patch-rollup-native.cjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -23,10 +27,13 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@rollup/rollup-darwin-arm64": "^4.60.2",
+    "@rollup/wasm-node": "^4.60.2",
     "@vitejs/plugin-react": "^4.5.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "wrangler": "^4.84.1"
   }
 }
