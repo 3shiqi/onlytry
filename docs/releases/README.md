@@ -10,6 +10,7 @@ Naming rule:
 - `0.2.1.md`
 - `0.3.0.md`
 - `0.4.0.md`
+- `0.5.0.md`
 
 Use release files for:
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CalendarDays, House } from 'lucide-react'
-import CalendarView from './CalendarView'
+import CalendarPage from './CalendarPage'
 import PlayLogger from './PlayLogger'
 import { useTrainingState } from './trainingState'
 import { APP_MODES } from './trainingSystem'
@@ -26,7 +26,7 @@ function ModeSwitch() {
         className="w-full max-w-sm pt-4"
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
       >
-        <div className="mx-auto flex w-full max-w-[12rem] rounded-full border border-[#E2E8F0] bg-white/92 p-1 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-[12rem] rounded-full border border-[#E2E8F0] bg-white/92 p-1 backdrop-blur-sm">
           {[APP_MODES.TRAIN, APP_MODES.PLAY].map((mode) => {
             const isActive = appMode === mode
 
@@ -58,7 +58,7 @@ function GlobalTabNavigation({ currentTab, onSelectTab }) {
         className="pointer-events-auto mx-auto w-full max-w-sm px-5"
         style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
       >
-        <div className="grid grid-cols-2 rounded-[28px] border border-[#E2E8F0] bg-white/95 p-2 shadow-[0_24px_60px_rgba(15,23,42,0.1)] backdrop-blur-sm">
+        <div className="grid grid-cols-2 rounded-[28px] border border-[#E2E8F0] bg-white/95 p-2 backdrop-blur-sm">
           {shellTabs.map((tab) => {
             const Icon = tab.icon
             const isActive = currentTab === tab.key
@@ -91,7 +91,7 @@ function App() {
 
   const activeScreen =
     currentTab === HOME_TABS.CALENDAR
-      ? <CalendarView />
+      ? <CalendarPage />
       : appMode === APP_MODES.TRAIN
         ? <WorkoutExecutor />
         : <PlayLogger />

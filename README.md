@@ -2,7 +2,7 @@
 
 A minimalist adaptive sports training session tracker built with React, Vite, Tailwind CSS, Lucide, and Framer Motion.
 
-Current app version: `0.4.0`
+Current app version: `0.5.0`
 
 ## Documentation
 
@@ -19,9 +19,9 @@ When code changes, update the related feature doc and `docs/CHANGELOG.md` in the
 
 Latest release highlights:
 
-- dual-mode Home shell with `Train / Play` segmented toggle
-- bottom global tab navigation for Home and Calendar
-- minimalist `PlayLogger` with TSS logging and success toast
+- de-UI Calendar page with system-load header and 7-day timeline
+- Day 1 logged-state rendering for same-day Play sessions
+- automatic recovery shift on Day 2 after external sport is recorded
 
 ## Version Management
 
@@ -77,7 +77,7 @@ This project includes:
 - `src/App.jsx` - dual-mode home shell and global tab routing
 - `src/WorkoutExecutor.jsx` - active session execution view
 - `src/PlayLogger.jsx` - system-external sport logging flow
-- `src/CalendarView.jsx` - 7-day fluid calendar screen
+- `src/CalendarPage.jsx` - system-load and 7-day prescription timeline
 - `src/workoutEngine.js` - adaptive workout generation engine
 - `src/trainingSystem.js` - prescriptions, TSS helpers, and periodization logic
 - `src/trainingState.jsx` - global training state provider and hook

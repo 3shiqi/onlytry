@@ -15,7 +15,7 @@ The shell now supports:
 
 - `src/App.jsx`
 - `src/PlayLogger.jsx`
-- `src/CalendarView.jsx`
+- `src/CalendarPage.jsx`
 - `src/WorkoutExecutor.jsx`
 
 ## Shell Contract
@@ -26,6 +26,7 @@ The shell now supports:
 - it toggles global `appMode`
 - `TRAIN` routes Home to the workout executor
 - `PLAY` routes Home to the play logger
+- shell controls should rely on borders and contrast, not drop shadows
 
 ### Bottom Navigation
 
@@ -34,6 +35,7 @@ The shell now supports:
   - `Home`
   - `Calendar`
 - the tab bar must stay available regardless of `appMode`
+- keep the nav visually quiet with outlines instead of floating shadows
 
 ## Home Route Behavior
 
@@ -72,9 +74,10 @@ Required logic:
 
 ## Calendar Route Contract
 
-- show the rolling 7-day prescription array from `fluidCalendar`
-- show current TSS
-- optionally show recent external logs
+- render `CalendarPage`
+- show current TSS as a system-load header
+- show the rolling 7-day prescription timeline
+- allow the Calendar route to reflect same-day play logging immediately
 
 ## Do Not Break
 

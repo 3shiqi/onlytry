@@ -47,7 +47,7 @@ Files:
 
 - `src/App.jsx`
 - `src/PlayLogger.jsx`
-- `src/CalendarView.jsx`
+- `src/CalendarPage.jsx`
 
 Responsibilities:
 
@@ -55,6 +55,7 @@ Responsibilities:
 - render bottom tab navigation
 - route Home between `TRAIN` and `PLAY`
 - route Calendar to the fluid prescription view
+- route Calendar to a system-load timeline that reacts to same-day play logs
 - preserve the executor as one routed branch instead of flattening it into a dashboard
 
 ### 4. Session UI Layer
@@ -113,6 +114,7 @@ Responsibilities:
 4. Each appended log can increase `currentTSS`
 5. `calculateFluidCalendar()` derives a 7-day forward prescription array from `currentTSS`
 6. `appMode` allows future screens to branch between structured training and sport-play logging
+7. `CalendarPage` can layer same-day play activity on top of the pure prescription array without mutating the helper
 
 ### Home Shell Flow
 
@@ -121,7 +123,15 @@ Responsibilities:
 3. The bottom tab bar switches between `Home` and `Calendar`
 4. `Home + TRAIN` renders the workout executor
 5. `Home + PLAY` renders the play logger
-6. `Calendar` renders the dynamic prescription list
+6. `Calendar` renders the dynamic system-load timeline
+
+### Calendar Display Flow
+
+1. `CalendarPage` reads `currentTSS` and `externalLogs`
+2. The page calls `calculateFluidCalendar(currentTSS)` for the base 7-day band
+3. If a play log exists today, `Day 1` becomes a logged summary row
+4. The page forces `Day 2` to recovery
+5. Remaining days shift behind the recovery slot to keep the week more conservative
 
 ### Session Execution Flow
 

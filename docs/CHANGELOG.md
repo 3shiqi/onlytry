@@ -3,6 +3,18 @@
 This file tracks human-readable project history by semantic version.
 Git remains the detailed source of truth.
 
+## [0.5.0] - 2026-04-24
+
+### Added
+
+- a dedicated `CalendarPage` with a de-UI system-load header and 7-day timeline
+- same-day play-log rendering on `Day 1` with a checked logged-state row
+
+### Changed
+
+- the Calendar tab now forces `Day 2` into recovery after a same-day play log
+- future calendar days now shift behind the recovery slot to make the timeline visibly more conservative
+
 ## [0.4.0] - 2026-04-24
 
 ### Added

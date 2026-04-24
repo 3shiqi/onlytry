@@ -30,6 +30,7 @@ It should feel like a focused training screen.
 - Tags represent the current plan configuration, not generic navigation
 - The refresh action lives on the far right
 - A thin phase progress bar sits below the tag row
+- On the Calendar route, the top content should reduce to a thin system-load bar and status copy
 
 ### Center Area
 
@@ -39,6 +40,7 @@ It should feel like a focused training screen.
 - Small instruction copy
 - One primary data metric in the visual center
 - Same-exercise next-set changes should still feel visually distinct
+- On the Calendar route, the center becomes a line-based 7-day timeline with `Day 1` visually dominant
 
 ### Bottom Area
 
@@ -113,6 +115,14 @@ It should feel like a focused training screen.
 - The play logger should keep the same quiet, bold, high-contrast tone as training mode
 - Avoid bordered dashboard cards; use spacing, typography, and pills instead
 - Success feedback should feel lightweight and immediate
+
+### Calendar Page
+
+- The calendar should avoid cards and drop shadows entirely
+- `SYSTEM LOAD (系统负荷)` should feel like a system readout, not a marketing header
+- The TSS bar should stay hairline-thin
+- `Day 1` must become a logged-state row when the user records a play session today
+- In that case `Day 2` must visibly switch to `无痛重启 (Recovery)`
 
 ### Regression
 

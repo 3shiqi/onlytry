@@ -68,9 +68,21 @@ The engine can already consume these goals for quota resolution even before the 
 ### `calculateFluidCalendar(tss)`
 
 - returns an array of `7` strings
-- represents a forward-looking week, starting with tomorrow
+- represents the base 7-slot prescription band used by the Calendar page
 - if `tss > 80`, tomorrow must be `无痛重启 (Recovery)`
 - if `tss > 50`, tomorrow must be `足踝稳定/肩胸功能`
+
+## Calendar Consumer Rule
+
+`CalendarPage` consumes `currentTSS`, `externalLogs`, and `calculateFluidCalendar()` together.
+
+If a play log exists on the current day:
+
+- the page shows the log itself on `Day 1`
+- `Day 2` is forced to recovery
+- the remaining timeline shifts to a more conservative order
+
+This override belongs in the page layer, not in the pure helper.
 
 ## Do Not Break
 

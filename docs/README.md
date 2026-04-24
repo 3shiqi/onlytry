@@ -44,6 +44,7 @@ For most future work, edit in this order:
 - `architecture/app-architecture.md`
 - `design/experience-spec.md`
 - `features/home-shell.md`
+- `features/calendar-page.md`
 - `features/training-state.md`
 - `features/workout-engine.md`
 - `features/session-execution.md`
