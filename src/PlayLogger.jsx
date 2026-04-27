@@ -66,6 +66,7 @@ function PlayLogger() {
   const [duration, setDuration] = useState(60)
   const [rpe, setRpe] = useState(5)
   const [toastMessage, setToastMessage] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   const estimatedTss = calculatePlayTSS(duration, rpe)
 
@@ -81,21 +82,31 @@ function PlayLogger() {
     return () => window.clearTimeout(timeoutId)
   }, [toastMessage])
 
-  const handleLogActivity = () => {
+  const handleLogActivity = async () => {
+    if (isSaving) {
+      return
+    }
+
     const tssEarned = calculatePlayTSS(duration, rpe)
 
-    appendExternalLog({
-      date: new Date().toISOString(),
-      sportType: selectedSport,
-      duration,
-      rpe,
-      tssEarned,
-    })
+    setIsSaving(true)
 
-    setToastMessage(`已记录 ${selectedSport} · +${tssEarned} TSS`)
-    setSelectedSport(sportOptions[0].value)
-    setDuration(60)
-    setRpe(5)
+    try {
+      await appendExternalLog({
+        date: new Date().toISOString(),
+        sportType: selectedSport,
+        duration,
+        rpe,
+        tssEarned,
+      })
+
+      setToastMessage(`已记录 ${selectedSport} · +${tssEarned} TSS`)
+      setSelectedSport(sportOptions[0].value)
+      setDuration(60)
+      setRpe(5)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -186,9 +197,10 @@ function PlayLogger() {
             <button
               type="button"
               onClick={handleLogActivity}
+              disabled={isSaving}
               className="h-20 w-full rounded-[28px] bg-[#1A1A1A] text-lg font-black tracking-[0.14em] text-white transition hover:bg-[#111111]"
             >
-              记录系统外运动 (LOG ACTIVITY)
+              {isSaving ? 'SAVING' : '记录系统外运动 (LOG ACTIVITY)'}
             </button>
           </div>
         </div>

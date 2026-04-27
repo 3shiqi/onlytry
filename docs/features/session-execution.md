@@ -9,6 +9,8 @@ Inside the new shell, this view is the `TRAIN` mode content for the `Home` tab.
 ## Source File
 
 - `src/WorkoutExecutor.jsx`
+- `src/trainingState.jsx`
+- `src/trainingSystem.js`
 
 ## Core Behavior
 
@@ -62,6 +64,12 @@ The active movement screen contains:
 - After the final movement, the app enters a completion panel
 - Completion shows summary stats and phase mix
 - Bottom action switches from `CHECK` to `REFRESH`
+
+### Completion Logging
+
+- When a session completes, the executor writes one `TRAIN` history entry through `appendHistoryLog()`
+- The persisted history payload includes `theme`, `goal`, `difficultyStr`, `estimatedTime`, `totalSets`, and derived `tssEarned`
+- Duplicate writes for the same completed session are guarded inside the executor with a per-session key
 
 ## Regression Model
 

@@ -76,8 +76,9 @@ Required logic:
 
 - render `CalendarPage`
 - show current TSS as a system-load header
-- show the rolling 7-day prescription timeline
-- allow the Calendar route to reflect same-day play logging immediately
+- show a monthly grid that merges historical logs with future projected prescriptions
+- allow the Calendar route to reflect new play or train logs immediately
+- keep a persistent detail section below the grid for the tapped day
 
 ## Do Not Break
 

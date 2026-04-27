@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowDown,
   CheckCircle2,
@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { fullActionLibrary } from './actionLibrary'
+import { useTrainingState } from './trainingState'
+import { calculateTrainTSS } from './trainingSystem'
 import {
   defaultPreferences,
   generateWorkout,
@@ -534,6 +536,7 @@ function EmptyPanel() {
 }
 
 function WorkoutExecutor() {
+  const { appendHistoryLog } = useTrainingState()
   const [preferences, setPreferences] = useState(defaultPreferences)
   const [activeMenu, setActiveMenu] = useState(null)
   const [sessionVersion, setSessionVersion] = useState(0)
@@ -545,6 +548,7 @@ function WorkoutExecutor() {
   const [regressedExerciseIds, setRegressedExerciseIds] = useState([])
   const [workTimerState, setWorkTimerState] = useState(emptyWorkTimerState)
   const [restState, setRestState] = useState(emptyRestState)
+  const loggedSessionKeysRef = useRef(new Set())
 
   const plan = sessionBundle.plan
   const hasExercises = plan.length > 0
@@ -712,6 +716,34 @@ function WorkoutExecutor() {
 
     return () => window.clearTimeout(timeoutId)
   }, [isResting, restState.remainingSeconds])
+
+  useEffect(() => {
+    if (!isSessionComplete || !hasExercises) {
+      return
+    }
+
+    const sessionKey = `${sessionVersion}-${sessionBundle.tags.theme}-${plan.length}`
+
+    if (loggedSessionKeysRef.current.has(sessionKey)) {
+      return
+    }
+
+    loggedSessionKeysRef.current.add(sessionKey)
+
+    const trainTss = calculateTrainTSS(sessionBundle.tags)
+
+    appendHistoryLog({
+      date: new Date().toISOString(),
+      theme: sessionBundle.tags.theme,
+      goal: sessionBundle.summary.goal,
+      difficultyStr: sessionBundle.tags.difficultyStr,
+      estimatedTime: sessionBundle.tags.estimatedTime,
+      totalSets: sessionBundle.tags.totalSets,
+      tssEarned: trainTss,
+    }).catch(() => {
+      loggedSessionKeysRef.current.delete(sessionKey)
+    })
+  }, [appendHistoryLog, hasExercises, isSessionComplete, plan.length, sessionBundle, sessionVersion])
 
   const handleSelectOption = (menuKey, value) => {
     regeneratePlan({ ...preferences, [menuKey]: value })

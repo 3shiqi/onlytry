@@ -2,18 +2,20 @@
 
 ## Purpose
 
-Turn the Calendar tab into a readable system-load timeline instead of a placeholder summary screen.
+Turn the Calendar tab into a monthly operating view that merges real history with projected future planning.
 
-The page should answer two questions immediately:
+The page should answer three questions immediately:
 
 - how stressed the system is right now
-- how the next 7 days shift after external play is logged
+- what actually happened earlier this month
+- what the next planned training / rest cadence looks like from today forward
 
 ## Source Files
 
 - `src/CalendarPage.jsx`
 - `src/trainingState.jsx`
 - `src/trainingSystem.js`
+- `src/trainingDb.js`
 
 ## Header Contract
 
@@ -31,36 +33,72 @@ Color thresholds:
 - `40` to `70` -> yellow
 - above `70` -> red
 
-## Timeline Contract
+## Month Grid Contract
 
-The main section is a 7-day timeline.
+The main section is a Monday-first monthly grid.
 
 Required behavior:
 
-- use `calculateFluidCalendar(currentTSS)` as the base prescription array
-- show `Day 1` through `Day 7`
-- show a real date for every day
-- keep `Day 1` visually larger than the rest
-- use line separators and whitespace instead of cards or shadows
+- use a 7-column layout with weekday headers `M T W T F S S`
+- pad leading and trailing filler cells so the grid keeps its calendar structure
+- show one tap target per real day
+- keep the layout free of boxed cards and drop shadows
+- keep `today` visible via a crisp black ring
 
-## Today Log Override
+The grid data is built by `generateMonthData(year, month, options)`.
 
-If the user logged a `PLAY` session today:
+## Time Divide Contract
 
-- `Day 1` must display `已记录: {Sport Name} (+{TSS} TSS)`
-- `Day 1` must show a checkmark
-- `Day 2` must be forced to `无痛重启 (Recovery)`
-- later days should shift backward through the base prescription array so the timeline feels more conservative
+The page splits the month into historical days and projected days.
 
-Current implementation detail:
+### Past Days
 
-- if multiple external logs exist today, the most recent log owns the `Day 1` summary line
-- `currentTSS` still reflects all logged sessions because the provider accumulates total earned TSS
+For every day before `today`:
+
+- query Dexie through `getMonthLogs(year, month)`
+- merge `history` logs and `activityLogs`
+- if a log exists, mark the cell `COMPLETED`
+- if no log exists, mark the cell `MISSED_OR_REST`
+
+Completed subtype rules:
+
+- `TRAIN` uses a solid dark marker
+- `PLAY` uses a solid grey marker
+
+### Today And Future Days
+
+For `today` and later:
+
+- use `buildProjectedCalendarSlots(currentTSS, totalDays)` as the projection source
+- preserve the automatic rest cadence that comes from `calculateFluidCalendar()`
+- render planned training days as outlined markers
+- render `REST (休息)` days as faded dates with no active marker
+
+If a real log already exists today:
+
+- today stays `COMPLETED`
+- future planning starts from tomorrow
+- the next projected days still come from the current TSS-driven prescription engine
+
+## Day Details Contract
+
+Below the grid, the page renders one persistent detail block for the selected date.
+
+Detail copy rules:
+
+- completed train day -> `Completed: {Theme} (+{TSS} TSS)`
+- completed play day -> `Completed: {Sport} (+{TSS} TSS)`
+- planned future day -> `Planned: {Theme}`
+- empty past day -> `No completed log. Marked as rest / missed.`
+- future rest day -> `Planned: REST (休息)`
+
+Clicking any day in the grid must update this section immediately.
 
 ## Do Not Break
 
-- do not turn the timeline into boxed cards
-- do not add drop shadows
-- do not remove the `Day 1` visual emphasis
-- do not embed play-log annotations inside `calculateFluidCalendar()` itself
-- keep the log-day override in the page layer so the pure periodization helper stays reusable
+- do not convert the month grid into card tiles
+- do not add heavy borders or shadows to cells
+- do not move historical log lookup into `trainingSystem.js`
+- keep historical Dexie reads in the page/data layer
+- keep future planning driven by the pure periodization helpers
+- do not fade planned recovery prescriptions the same way as true rest days

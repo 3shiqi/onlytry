@@ -3,6 +3,21 @@
 This file tracks human-readable project history by semantic version.
 Git remains the detailed source of truth.
 
+## [0.6.0] - 2026-04-27
+
+### Added
+
+- Dexie-backed persistence for completed `TRAIN` sessions and logged `PLAY` sessions
+- a monthly-grid `CalendarPage` that merges past history, current day state, and future projected prescriptions
+- a tap-to-inspect day-detail panel under the calendar grid
+
+### Changed
+
+- future calendar planning now uses explicit rest cadence rather than showing a continuous 7-day training strip
+- completed in-app training sessions now feed back into `currentTSS` and the persisted history layer
+- Calendar visuals now distinguish `TRAIN`, `PLAY`, `PLANNED`, and true `REST` states with different markers
+- project documentation and release notes are now aligned to the persisted calendar architecture
+
 ## [0.5.0] - 2026-04-24
 
 ### Added

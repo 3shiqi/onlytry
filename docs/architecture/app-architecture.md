@@ -14,6 +14,7 @@ Files:
 - `src/actionLibrary.js`
 - `src/workoutEngine.js`
 - `src/trainingSystem.js`
+- `src/trainingDb.js`
 
 Responsibilities:
 
@@ -25,19 +26,23 @@ Responsibilities:
 - preserve per-movement rest timing metadata for the executor
 - define the shared prescription taxonomy
 - define pure TSS and periodization logic
+- persist and query train / play logs through Dexie
 
 ### 2. Global Training State Layer
 
 Files:
 
 - `src/trainingState.jsx`
+- `src/trainingDb.js`
 - `src/main.jsx`
 
 Responsibilities:
 
 - track app-wide mode between `TRAIN` and `PLAY`
 - track current stress score
+- hydrate persisted play and train logs
 - store external sport logs
+- store completed in-app training logs
 - derive a fluid 7-day prescription calendar from TSS
 - expose a provider so future screens can share the same state
 
@@ -54,8 +59,7 @@ Responsibilities:
 - render the dual-mode segmented control
 - render bottom tab navigation
 - route Home between `TRAIN` and `PLAY`
-- route Calendar to the fluid prescription view
-- route Calendar to a system-load timeline that reacts to same-day play logs
+- route Calendar to the monthly load / history view
 - preserve the executor as one routed branch instead of flattening it into a dashboard
 
 ### 4. Session UI Layer
@@ -63,6 +67,7 @@ Responsibilities:
 Files:
 
 - `src/WorkoutExecutor.jsx`
+- `src/PlayLogger.jsx`
 
 Responsibilities:
 
@@ -74,6 +79,8 @@ Responsibilities:
 - apply per-exercise manual regression
 - advance automatically to the next movement when all sets are done
 - show completion state when the last movement ends
+- write completed `TRAIN` sessions back into persistent history
+- write external `PLAY` sessions back into persistent activity logs
 
 ### 5. Shell / Delivery Layer
 
@@ -114,7 +121,8 @@ Responsibilities:
 4. Each appended log can increase `currentTSS`
 5. `calculateFluidCalendar()` derives a 7-day forward prescription array from `currentTSS`
 6. `appMode` allows future screens to branch between structured training and sport-play logging
-7. `CalendarPage` can layer same-day play activity on top of the pure prescription array without mutating the helper
+7. `logsVersion` gives screens a cheap re-render trigger when persisted log data changes
+8. `CalendarPage` can combine persisted history with pure future projections without mutating the helpers
 
 ### Home Shell Flow
 
@@ -123,15 +131,15 @@ Responsibilities:
 3. The bottom tab bar switches between `Home` and `Calendar`
 4. `Home + TRAIN` renders the workout executor
 5. `Home + PLAY` renders the play logger
-6. `Calendar` renders the dynamic system-load timeline
+6. `Calendar` renders the monthly grid view plus day details
 
 ### Calendar Display Flow
 
-1. `CalendarPage` reads `currentTSS` and `externalLogs`
-2. The page calls `calculateFluidCalendar(currentTSS)` for the base 7-day band
-3. If a play log exists today, `Day 1` becomes a logged summary row
-4. The page forces `Day 2` to recovery
-5. Remaining days shift behind the recovery slot to keep the week more conservative
+1. `CalendarPage` reads `currentTSS` and `logsVersion`
+2. `generateMonthData()` queries Dexie through `getMonthLogs(year, month)`
+3. Past days map real logs into `COMPLETED` or `MISSED_OR_REST`
+4. Today and future days use `buildProjectedCalendarSlots(currentTSS, totalDays)`
+5. The page renders a Monday-first month grid plus a separate day-detail surface
 
 ### Session Execution Flow
 
@@ -143,6 +151,7 @@ Responsibilities:
 6. Every completed set enters a rest state using `restIntra` or `restInter`
 7. Inter-exercise rest completion advances to the next movement automatically
 8. Completing the final movement and final rest enters the completion panel
+9. The completion effect persists a `TRAIN` history log and increases `currentTSS`
 
 ## Key Local State In `WorkoutExecutor.jsx`
 
@@ -174,6 +183,7 @@ Responsibilities:
 - Filter changes should reset the session back to the first movement
 - Refresh should always reset the session back to the first movement
 - Regeneration should clear both work and rest timers
+- Historical calendar state should survive refreshes because it comes from Dexie, not component-only memory
 
 ## Known Technical Constraint
 

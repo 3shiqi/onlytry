@@ -40,7 +40,7 @@ It should feel like a focused training screen.
 - Small instruction copy
 - One primary data metric in the visual center
 - Same-exercise next-set changes should still feel visually distinct
-- On the Calendar route, the center becomes a line-based 7-day timeline with `Day 1` visually dominant
+- On the Calendar route, the center becomes a sparse monthly grid with a separate detail area below it
 
 ### Bottom Area
 
@@ -121,8 +121,14 @@ It should feel like a focused training screen.
 - The calendar should avoid cards and drop shadows entirely
 - `SYSTEM LOAD (系统负荷)` should feel like a system readout, not a marketing header
 - The TSS bar should stay hairline-thin
-- `Day 1` must become a logged-state row when the user records a play session today
-- In that case `Day 2` must visibly switch to `无痛重启 (Recovery)`
+- The month grid should be Monday-first and 7 columns wide
+- `TODAY` should read as a crisp ring, not a filled badge
+- completed `TRAIN` days should use a dark solid marker
+- completed `PLAY` days should use a softer grey solid marker
+- planned days should use a hollow marker
+- true rest / empty days should fade heavily
+- planned recovery days should still read as active prescriptions, not empty space
+- tapping a day should update the detail panel below the grid
 
 ### Regression
 

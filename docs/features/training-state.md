@@ -6,16 +6,20 @@ Create one global source of truth for:
 
 - app mode
 - external play load
+- completed train load
 - dynamic stress tracking
-- 7-day forward prescription logic
+- projected calendar logic
 - granular backend-ready training categories
 
 ## Source Files
 
 - `src/trainingSystem.js`
 - `src/trainingState.jsx`
+- `src/trainingDb.js`
 - `src/main.jsx`
 - `src/workoutEngine.js`
+- `src/WorkoutExecutor.jsx`
+- `src/PlayLogger.jsx`
 
 ## Global State Contract
 
@@ -23,9 +27,14 @@ The provider exposes these core fields:
 
 - `currentTSS`
   - default `30`
-- `externalLogs`
+- `activityLogs`
   - default `[]`
   - entry shape: `{ date, sportType, duration, rpe, tssEarned }`
+- `historyLogs`
+  - default `[]`
+  - entry shape: `{ date, theme, goal, difficultyStr, estimatedTime, totalSets, tssEarned }`
+- `logsVersion`
+  - increments whenever persisted logs change
 - `appMode`
   - `TRAIN`
   - `PLAY`
@@ -40,6 +49,7 @@ The provider exposes these core fields:
 - raw state values
 - setters for `currentTSS`, `externalLogs`, `appMode`
 - `appendExternalLog()`
+- `appendHistoryLog()`
 - `resetTrainingState()`
 - derived `fluidCalendar`
 - `trainingPrescriptions`
@@ -68,27 +78,59 @@ The engine can already consume these goals for quota resolution even before the 
 ### `calculateFluidCalendar(tss)`
 
 - returns an array of `7` strings
-- represents the base 7-slot prescription band used by the Calendar page
+- represents the base 7-slot prescription band used by projected calendar views
 - if `tss > 80`, tomorrow must be `无痛重启 (Recovery)`
 - if `tss > 50`, tomorrow must be `足踝稳定/肩胸功能`
+- inserts automatic rest cadence so the system does not schedule training every day
+
+### `buildProjectedCalendarSlots(tss, totalDays)`
+
+- expands the 7-slot base cadence into as many future days as the calendar screen needs
+- repeats the cadence safely for longer month tails
+
+### `calculateTrainTSS(sessionSummary)`
+
+- derives a training-load estimate from session duration, sets, and difficulty label
+- is used when a completed `TRAIN` session is written into history
+
+## Persistence Contract
+
+Persisted logs live in Dexie:
+
+- `history`
+  - completed in-app training sessions
+- `activityLogs`
+  - system-external play sessions
+
+`currentTSS` remains mirrored in `localStorage` so the load bar is immediately available on boot.
+
+Hydration rules:
+
+- provider mount reads both Dexie tables through `getAllLogs()`
+- hydrated logs update `historyLogs`, `activityLogs`, and `logsVersion`
+- append helpers write to Dexie first, then sync React state
+
+Compatibility rule:
+
+- `externalLogs` remains exposed as an alias of `activityLogs` so existing consumers do not break
 
 ## Calendar Consumer Rule
 
-`CalendarPage` consumes `currentTSS`, `externalLogs`, and `calculateFluidCalendar()` together.
+`CalendarPage` consumes `currentTSS`, `logsVersion`, and projected calendar helpers together.
 
-If a play log exists on the current day:
+The page is responsible for:
 
-- the page shows the log itself on `Day 1`
-- `Day 2` is forced to recovery
-- the remaining timeline shifts to a more conservative order
-
-This override belongs in the page layer, not in the pure helper.
+- reading month-specific historical logs from Dexie
+- deciding whether a date is `COMPLETED`, `MISSED_OR_REST`, `PLANNED`, or `REST_OR_EMPTY`
+- keeping historical state in the calendar layer rather than polluting the pure engine
 
 ## Do Not Break
 
 - Keep `TRAIN` and `PLAY` enum values exact
 - Keep `currentTSS` defaulted to `30`
-- Keep `externalLogs` entry keys stable
+- Keep `activityLogs` / `externalLogs` entry keys stable
+- Keep `historyLogs` entry keys stable
 - Keep `calculateFluidCalendar()` returning exactly `7` strings
 - Keep the tomorrow override rules for `tss > 50` and `tss > 80`
+- Keep Dexie table names `history` and `activityLogs`
 - Do not move the provider below `App` in the tree

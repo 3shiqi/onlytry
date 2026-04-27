@@ -6,6 +6,8 @@ export const APP_MODES = {
 export const DEFAULT_CURRENT_TSS = 30
 export const DEFAULT_EXTERNAL_LOGS = []
 export const DEFAULT_APP_MODE = APP_MODES.TRAIN
+export const REST_DAY_LABEL = 'REST (休息)'
+export const RECOVERY_DAY_LABEL = '无痛重启 (Recovery)'
 
 export const PRESCRIPTIONS = {
   '足踝稳定 (Ankle Stability)': {
@@ -42,31 +44,31 @@ export const CSCS_QUOTA_PHASE_MAP = {
   esd: 'ESD',
 }
 
-const LOW_TSS_CALENDAR = [
+const LOW_TSS_THEMES = [
   '动力链爆发 (Power)',
   '下肢结构 (Lower Structure)',
   '上肢力量 (Upper Strength)',
   '足踝稳定 (Ankle Stability)',
   '心肺引擎 (ESD)',
   '肩胸功能 (Upper Mobility)',
-  '无痛重启 (Recovery)',
+  RECOVERY_DAY_LABEL,
 ]
 
-const MODERATE_TSS_CALENDAR = [
+const MODERATE_TSS_THEMES = [
   '足踝稳定/肩胸功能',
   '下肢结构 (Lower Structure)',
   '上肢力量 (Upper Strength)',
   '动力链爆发 (Power)',
   '足踝稳定 (Ankle Stability)',
   '心肺引擎 (ESD)',
-  '无痛重启 (Recovery)',
+  RECOVERY_DAY_LABEL,
 ]
 
-const HIGH_TSS_CALENDAR = [
-  '无痛重启 (Recovery)',
+const HIGH_TSS_THEMES = [
+  RECOVERY_DAY_LABEL,
   '肩胸功能 (Upper Mobility)',
   '足踝稳定 (Ankle Stability)',
-  '无痛重启 (Recovery)',
+  RECOVERY_DAY_LABEL,
   '上肢力量 (Upper Strength)',
   '下肢结构 (Lower Structure)',
   '心肺引擎 (ESD)',
@@ -81,6 +83,41 @@ function roundToSingleDecimal(value) {
   return Math.round(value * 10) / 10
 }
 
+function resolveBaseThemes(tss) {
+  const totalStressScore = toFiniteNumber(tss)
+
+  if (totalStressScore > 80) {
+    return [...HIGH_TSS_THEMES]
+  }
+
+  if (totalStressScore > 50) {
+    return [...MODERATE_TSS_THEMES]
+  }
+
+  return [...LOW_TSS_THEMES]
+}
+
+function applyRestCadence(themes, totalDays = 7) {
+  const projectedDays = []
+  let themeIndex = 0
+
+  for (let dayIndex = 0; dayIndex < totalDays; dayIndex += 1) {
+    const nextTheme = themes[themeIndex] ?? themes[themes.length - 1] ?? REST_DAY_LABEL
+    const shouldInsertRestDay =
+      dayIndex % 3 === 2 && nextTheme !== RECOVERY_DAY_LABEL
+
+    if (shouldInsertRestDay) {
+      projectedDays.push(REST_DAY_LABEL)
+      continue
+    }
+
+    projectedDays.push(nextTheme)
+    themeIndex += 1
+  }
+
+  return projectedDays
+}
+
 export function calculatePlayTSS(durationMins, rpe) {
   const duration = toFiniteNumber(durationMins)
   const perceivedExertion = toFiniteNumber(rpe)
@@ -88,17 +125,34 @@ export function calculatePlayTSS(durationMins, rpe) {
 }
 
 export function calculateFluidCalendar(tss) {
-  const totalStressScore = toFiniteNumber(tss)
+  return applyRestCadence(resolveBaseThemes(tss), 7)
+}
 
-  if (totalStressScore > 80) {
-    return [...HIGH_TSS_CALENDAR]
+export function buildProjectedCalendarSlots(tss, totalDays) {
+  const normalizedDays = Math.max(0, Number(totalDays) || 0)
+  const cadence = calculateFluidCalendar(tss)
+
+  return Array.from({ length: normalizedDays }, (_, index) => {
+    if (cadence.length === 0) {
+      return REST_DAY_LABEL
+    }
+
+    return cadence[index % cadence.length]
+  })
+}
+
+export function calculateTrainTSS(sessionSummary = {}) {
+  const estimatedTime = toFiniteNumber(sessionSummary.estimatedTime)
+  const totalSets = toFiniteNumber(sessionSummary.totalSets)
+  const effectiveMinutes = estimatedTime || Math.max(12, Math.round(totalSets * 1.5))
+  const intensityMap = {
+    恢复: 4,
+    适中: 5,
+    困难: 6,
   }
+  const intensity = intensityMap[sessionSummary.difficultyStr] || 5
 
-  if (totalStressScore > 50) {
-    return [...MODERATE_TSS_CALENDAR]
-  }
-
-  return [...LOW_TSS_CALENDAR]
+  return roundToSingleDecimal((effectiveMinutes * intensity) / 8)
 }
 
 export function normalizeCscsQuota(cscsQuota = {}) {

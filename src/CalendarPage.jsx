@@ -1,22 +1,15 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle2 } from 'lucide-react'
 import { useTrainingState } from './trainingState'
-import { calculateFluidCalendar } from './trainingSystem'
+import {
+  REST_DAY_LABEL,
+  buildProjectedCalendarSlots,
+} from './trainingSystem'
+import { getMonthLogs, toDateKey } from './trainingDb'
 
 const HOME_SHELL_TOP_OFFSET = 92
 const CALENDAR_CONTENT_BOTTOM_OFFSET = 112
-const RECOVERY_PRESCRIPTION = '无痛重启 (Recovery)'
-const FALLBACK_STABILITY_PRESCRIPTION = '足踝稳定/肩胸功能'
-
-const monthDayFormatter = new Intl.DateTimeFormat('zh-CN', {
-  month: '2-digit',
-  day: '2-digit',
-})
-
-const weekdayFormatter = new Intl.DateTimeFormat('zh-CN', {
-  weekday: 'short',
-})
+const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -61,87 +54,253 @@ function isSameLocalDay(leftDate, rightDate) {
   )
 }
 
-function addDays(date, daysToAdd) {
-  const nextDate = new Date(date)
-  nextDate.setDate(nextDate.getDate() + daysToAdd)
-  return nextDate
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }
 
-function formatMonthDay(date) {
-  return monthDayFormatter.format(date).replace(/\//g, '.')
+function getDaysBetween(leftDate, rightDate) {
+  const leftDay = startOfDay(leftDate)
+  const rightDay = startOfDay(rightDate)
+  const millisecondsPerDay = 1000 * 60 * 60 * 24
+
+  return Math.round((leftDay.getTime() - rightDay.getTime()) / millisecondsPerDay)
 }
 
-function buildTimelineEntries(currentTss, externalLogs) {
-  const today = new Date()
-  const basePlan = calculateFluidCalendar(currentTss)
-  const latestTodayLog =
-    [...externalLogs].reverse().find((entry) => {
-      const entryDate = new Date(entry.date)
-      return !Number.isNaN(entryDate.getTime()) && isSameLocalDay(entryDate, today)
-    }) ?? null
+function formatMonthHeading(date) {
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}`
+}
 
-  return Array.from({ length: 7 }, (_, index) => {
-    const calendarDate = addDays(today, index)
-    const sharedEntry = {
-      id: `${calendarDate.toISOString()}-${index}`,
-      dayLabel: `Day ${index + 1}`,
-      relativeLabel: index === 0 ? 'Today' : `Day ${index + 1}`,
-      dateLabel: formatMonthDay(calendarDate),
-      weekdayLabel: weekdayFormatter.format(calendarDate),
-      isToday: index === 0,
-      isLogged: false,
-      isShifted: false,
-      prescription:
-        basePlan[index] ?? basePlan[basePlan.length - 1] ?? FALLBACK_STABILITY_PRESCRIPTION,
-      note: index === 0 ? '当前系统建议会直接落在今天。' : '',
+function getDetailCopy(day) {
+  if (!day || day.isFiller) {
+    return 'Select a date.'
+  }
+
+  if (day.state === 'COMPLETED') {
+    const label = day.type === 'PLAY' ? day.sportType : day.theme
+    return `Completed: ${label} (+${formatTssValue(day.tssEarned)} TSS)`
+  }
+
+  if (day.state === 'PLANNED') {
+    return `Planned: ${day.theme}`
+  }
+
+  return day.isPast
+    ? 'No completed log. Marked as rest / missed.'
+    : 'Planned: REST (休息)'
+}
+
+function buildLogLookup(entries) {
+  return entries.reduce((lookup, entry) => {
+    const bucket = lookup.get(entry.dateKey) ?? []
+    bucket.push(entry)
+    lookup.set(entry.dateKey, bucket)
+    return lookup
+  }, new Map())
+}
+
+function pickPrimaryEntry(trainEntries = [], playEntries = []) {
+  const combinedEntries = [
+    ...trainEntries.map((entry) => ({ ...entry, type: 'TRAIN' })),
+    ...playEntries.map((entry) => ({ ...entry, type: 'PLAY' })),
+  ].sort((leftEntry, rightEntry) => new Date(rightEntry.date).getTime() - new Date(leftEntry.date).getTime())
+
+  return combinedEntries[0] ?? null
+}
+
+export async function generateMonthData(year, month, options = {}) {
+  const {
+    currentTSS,
+    today = new Date(),
+  } = options
+  const firstDayOfMonth = new Date(year, month, 1)
+  const lastDayOfMonth = new Date(year, month + 1, 0)
+  const monthLabel = formatMonthHeading(firstDayOfMonth)
+  const leadingOffset = (firstDayOfMonth.getDay() + 6) % 7
+  const trailingOffset = (7 - ((leadingOffset + lastDayOfMonth.getDate()) % 7 || 7)) % 7
+  const paddedCells = []
+  const todayKey = toDateKey(today)
+  const { history, activityLogs } = await getMonthLogs(year, month)
+  const trainLookup = buildLogLookup(history)
+  const playLookup = buildLogLookup(activityLogs)
+  const todayHasActualLog = Boolean(
+    (trainLookup.get(todayKey)?.length ?? 0) > 0 || (playLookup.get(todayKey)?.length ?? 0) > 0,
+  )
+  const futureDaysInMonth = Math.max(0, getDaysBetween(lastDayOfMonth, today) + 1)
+  const projectedThemes = buildProjectedCalendarSlots(
+    currentTSS,
+    Math.max(7, futureDaysInMonth + (todayHasActualLog ? 0 : 1)),
+  )
+
+  for (let index = 0; index < leadingOffset; index += 1) {
+    paddedCells.push({
+      id: `leading-${year}-${month}-${index}`,
+      isFiller: true,
+    })
+  }
+
+  for (let dayNumber = 1; dayNumber <= lastDayOfMonth.getDate(); dayNumber += 1) {
+    const date = new Date(year, month, dayNumber)
+    const dateKey = toDateKey(date)
+    const isToday = isSameLocalDay(date, today)
+    const isPast = getDaysBetween(date, today) < 0
+    const trainEntries = trainLookup.get(dateKey) ?? []
+    const playEntries = playLookup.get(dateKey) ?? []
+    const primaryEntry = pickPrimaryEntry(trainEntries, playEntries)
+    const totalDayTss = [...trainEntries, ...playEntries].reduce(
+      (sum, entry) => sum + (Number(entry.tssEarned) || 0),
+      0,
+    )
+
+    if (primaryEntry && (isPast || isToday)) {
+      paddedCells.push({
+        id: `${dateKey}-completed`,
+        date,
+        dateKey,
+        dayNumber,
+        monthLabel,
+        isToday,
+        isPast,
+        isFiller: false,
+        state: 'COMPLETED',
+        type: primaryEntry.type,
+        theme: primaryEntry.type === 'TRAIN' ? primaryEntry.theme : '',
+        sportType: primaryEntry.type === 'PLAY' ? primaryEntry.sportType : '',
+        tssEarned: totalDayTss || primaryEntry.tssEarned || 0,
+      })
+      continue
     }
 
-    if (!latestTodayLog) {
-      return sharedEntry
+    if (isPast) {
+      paddedCells.push({
+        id: `${dateKey}-missed`,
+        date,
+        dateKey,
+        dayNumber,
+        monthLabel,
+        isToday,
+        isPast,
+        isFiller: false,
+        state: 'MISSED_OR_REST',
+        type: null,
+        theme: '',
+        sportType: '',
+        tssEarned: 0,
+      })
+      continue
     }
 
-    if (index === 0) {
-      return {
-        ...sharedEntry,
-        isLogged: true,
-        prescription: `已记录: ${latestTodayLog.sportType} (+${formatTssValue(latestTodayLog.tssEarned)} TSS)`,
-        note: '今日系统外运动已写入负荷，明天会自动切向恢复。',
-      }
-    }
+    const offsetFromToday = getDaysBetween(date, today)
+    const projectionIndex = todayHasActualLog
+      ? Math.max(0, offsetFromToday - 1)
+      : Math.max(0, offsetFromToday)
+    const plannedTheme = projectedThemes[projectionIndex] ?? REST_DAY_LABEL
+    const plannedState = plannedTheme === REST_DAY_LABEL ? 'REST_OR_EMPTY' : 'PLANNED'
 
-    if (index === 1) {
-      return {
-        ...sharedEntry,
-        isShifted: true,
-        prescription: RECOVERY_PRESCRIPTION,
-        note: '由于今天已经有额外负荷，明日编排自动降到恢复日。',
-      }
-    }
+    paddedCells.push({
+      id: `${dateKey}-planned`,
+      date,
+      dateKey,
+      dayNumber,
+      monthLabel,
+      isToday,
+      isPast: false,
+      isFiller: false,
+      state: plannedState,
+      type: null,
+      theme: plannedTheme,
+      sportType: '',
+      tssEarned: 0,
+    })
+  }
 
-    return {
-      ...sharedEntry,
-      isShifted: true,
-      prescription:
-        basePlan[index - 1] ?? basePlan[basePlan.length - 1] ?? FALLBACK_STABILITY_PRESCRIPTION,
-      note:
-        index === 2
-          ? '后续处方已经根据新的系统负荷重新后移。'
-          : '',
-    }
-  })
+  for (let index = 0; index < trailingOffset; index += 1) {
+    paddedCells.push({
+      id: `trailing-${year}-${month}-${index}`,
+      isFiller: true,
+    })
+  }
+
+  return paddedCells
+}
+
+function CalendarCellMarker({ day }) {
+  if (day.state === 'COMPLETED' && day.type === 'TRAIN') {
+    return <span className="mt-2 h-2.5 w-2.5 rounded-full bg-[#1A1A1A]" />
+  }
+
+  if (day.state === 'COMPLETED' && day.type === 'PLAY') {
+    return <span className="mt-2 h-2.5 w-2.5 rounded-full bg-[#94A3B8]" />
+  }
+
+  if (day.state === 'PLANNED') {
+    return <span className="mt-2 h-3 w-3 rounded-full border border-[#1A1A1A]" />
+  }
+
+  if (day.state === 'REST_OR_EMPTY' || day.state === 'MISSED_OR_REST') {
+    return <span className="mt-2 h-3 w-3 opacity-0" aria-hidden="true" />
+  }
+
+  return null
 }
 
 function CalendarPage() {
-  const { currentTSS, externalLogs } = useTrainingState()
+  const { currentTSS, logsVersion } = useTrainingState()
+  const [monthData, setMonthData] = useState([])
+  const [selectedDateKey, setSelectedDateKey] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const viewDate = useMemo(() => new Date(), [])
 
-  const timelineEntries = useMemo(
-    () => buildTimelineEntries(currentTSS, externalLogs),
-    [currentTSS, externalLogs],
-  )
+  useEffect(() => {
+    let isActive = true
+
+    const loadMonthData = async () => {
+      setIsLoading(true)
+
+      const generatedMonthData = await generateMonthData(
+        viewDate.getFullYear(),
+        viewDate.getMonth(),
+        { currentTSS, today: new Date() },
+      )
+
+      if (!isActive) {
+        return
+      }
+
+      setMonthData(generatedMonthData)
+      setSelectedDateKey((current) => {
+        const firstSelectableDay =
+          generatedMonthData.find((day) => day.isToday && !day.isFiller)?.dateKey
+          ?? generatedMonthData.find((day) => !day.isFiller)?.dateKey
+          ?? ''
+
+        if (!current) {
+          return firstSelectableDay
+        }
+
+        const stillExists = generatedMonthData.some((day) => day.dateKey === current)
+        return stillExists ? current : firstSelectableDay
+      })
+      setIsLoading(false)
+    }
+
+    loadMonthData().catch(() => {
+      if (!isActive) {
+        return
+      }
+
+      setMonthData([])
+      setIsLoading(false)
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [currentTSS, logsVersion, viewDate])
 
   const tssTone = getTssTone(currentTSS)
   const progressPercentage = clamp(Number(currentTSS) || 0, 0, 100)
-  const latestTodayEntry = timelineEntries[0]
+  const selectedDay = monthData.find((day) => day.dateKey === selectedDateKey) ?? null
+  const monthLabel = formatMonthHeading(viewDate)
 
   return (
     <main className="min-h-[100dvh] bg-[#FFFFFF] text-[#1A1A1A]">
@@ -174,98 +333,89 @@ function CalendarPage() {
             >
               Current TSS: {formatTssValue(currentTSS)} / 100
             </p>
-
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#94A3B8]">
-              {tssTone.label}
-            </p>
           </div>
         </header>
 
         <section className="pt-14">
           <div className="flex items-end justify-between gap-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#94A3B8]">
-              Timeline
+              Monthly Grid
             </p>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#94A3B8]">
-              7 Days
+            <p className="text-2xl font-black tracking-[-0.06em] text-[#1A1A1A]">
+              {monthLabel}
             </p>
           </div>
 
-          {latestTodayEntry.isLogged ? (
-            <p className="mt-4 max-w-[16rem] text-sm leading-6 text-[#64748B]">
-              今天已经记录了系统外运动，后面的训练日程会更偏向恢复和稳定。
-            </p>
-          ) : null}
+          <div className="mt-6 grid grid-cols-7 gap-y-3">
+            {WEEKDAY_LABELS.map((label) => (
+              <p
+                key={label}
+                className="text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-[#94A3B8]"
+              >
+                {label}
+              </p>
+            ))}
 
-          <div className="mt-6">
-            {timelineEntries.map((entry, index) => {
-              const titleClasses = entry.isToday
-                ? 'text-[1.9rem] leading-[1.05] tracking-[-0.06em]'
-                : 'text-[1.35rem] leading-[1.08] tracking-[-0.04em]'
+            {monthData.map((day) => {
+              if (day.isFiller) {
+                return <div key={day.id} className="h-[4.8rem]" aria-hidden="true" />
+              }
 
-              const prescriptionColor = entry.isLogged
-                ? '#1A1A1A'
-                : entry.prescription === RECOVERY_PRESCRIPTION
-                  ? '#15803D'
-                  : '#1A1A1A'
+              const isSelected = day.dateKey === selectedDateKey
+              const isRestLike =
+                day.state === 'MISSED_OR_REST' ||
+                day.state === 'REST_OR_EMPTY' ||
+                day.theme === REST_DAY_LABEL
 
               return (
-                <article
-                  key={entry.id}
-                  className={`border-b border-[#E2E8F0] ${
-                    index === 0 ? 'py-8' : 'py-6'
-                  }`}
+                <button
+                  key={day.id}
+                  type="button"
+                  onClick={() => setSelectedDateKey(day.dateKey)}
+                  className="flex h-[4.8rem] flex-col items-center justify-start rounded-[18px] px-1 py-2 transition"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-[5.25rem] shrink-0">
-                      <p
-                        className={`text-[10px] font-semibold uppercase tracking-[0.24em] ${
-                          entry.isToday ? 'text-[#1A1A1A]' : 'text-[#94A3B8]'
-                        }`}
-                      >
-                        {entry.dayLabel}
-                      </p>
-                      <p
-                        className={`mt-2 font-black tracking-[-0.04em] ${
-                          entry.isToday ? 'text-lg text-[#1A1A1A]' : 'text-sm text-[#64748B]'
-                        }`}
-                      >
-                        {entry.relativeLabel}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-[#64748B]">
-                        {entry.dateLabel}
-                      </p>
-                      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">
-                        {entry.weekdayLabel}
-                      </p>
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p
-                            className={`font-black ${titleClasses}`}
-                            style={{ color: prescriptionColor }}
-                          >
-                            {entry.prescription}
-                          </p>
-
-                          {entry.note ? (
-                            <p className="mt-3 max-w-[15rem] text-sm leading-6 text-[#64748B]">
-                              {entry.note}
-                            </p>
-                          ) : null}
-                        </div>
-
-                        {entry.isLogged ? (
-                          <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-[#22C55E]" />
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                </article>
+                  <span
+                    className={`flex h-8 w-8 items-center justify-center text-sm font-black tracking-[-0.03em] ${
+                      isRestLike ? 'opacity-30' : ''
+                    } ${
+                      isSelected && !day.isToday
+                        ? 'bg-[#F8FAFC] text-[#1A1A1A]'
+                        : 'text-[#1A1A1A]'
+                    } ${
+                      day.isToday
+                        ? 'rounded-full ring-2 ring-[#1A1A1A] ring-offset-2 ring-offset-[#FFFFFF]'
+                        : 'rounded-full'
+                    }`}
+                  >
+                    {day.dayNumber}
+                  </span>
+                  <CalendarCellMarker day={day} />
+                </button>
               )
             })}
+          </div>
+        </section>
+
+        <section className="pt-12">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#94A3B8]">
+            Day Details
+          </p>
+
+          <div className="mt-5 min-h-[8rem]">
+            {isLoading ? (
+              <p className="text-sm leading-6 text-[#64748B]">Loading month...</p>
+            ) : selectedDay ? (
+              <>
+                <p className="text-3xl font-black tracking-[-0.05em] text-[#1A1A1A]">
+                  {selectedDay.monthLabel}.{String(selectedDay.dayNumber).padStart(2, '0')}
+                </p>
+                <p className="mt-4 max-w-[16rem] text-base leading-7 text-[#1A1A1A]">
+                  {getDetailCopy(selectedDay)}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm leading-6 text-[#64748B]">No date selected.</p>
+            )}
           </div>
         </section>
       </div>

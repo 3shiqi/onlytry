@@ -2,7 +2,7 @@
 
 A minimalist adaptive sports training session tracker built with React, Vite, Tailwind CSS, Lucide, and Framer Motion.
 
-Current app version: `0.5.0`
+Current app version: `0.6.0`
 
 ## Documentation
 
@@ -19,9 +19,9 @@ When code changes, update the related feature doc and `docs/CHANGELOG.md` in the
 
 Latest release highlights:
 
-- de-UI Calendar page with system-load header and 7-day timeline
-- Day 1 logged-state rendering for same-day Play sessions
-- automatic recovery shift on Day 2 after external sport is recorded
+- monthly-grid Calendar page with historical logs and future projections
+- Dexie persistence for in-app training history and external sport logs
+- automatic rest cadence in future planning plus tap-to-inspect day details
 
 ## Version Management
 
@@ -62,7 +62,7 @@ Use these settings in Cloudflare Pages:
 
 See also:
 
-- `CLOUDFLARE_PAGES_SETUP.md`
+- `docs/features/pwa-and-deployment.md`
 
 ## PWA
 
@@ -77,9 +77,10 @@ This project includes:
 - `src/App.jsx` - dual-mode home shell and global tab routing
 - `src/WorkoutExecutor.jsx` - active session execution view
 - `src/PlayLogger.jsx` - system-external sport logging flow
-- `src/CalendarPage.jsx` - system-load and 7-day prescription timeline
+- `src/CalendarPage.jsx` - system-load monthly grid and day-detail view
 - `src/workoutEngine.js` - adaptive workout generation engine
 - `src/trainingSystem.js` - prescriptions, TSS helpers, and periodization logic
+- `src/trainingDb.js` - Dexie persistence helpers for train and play logs
 - `src/trainingState.jsx` - global training state provider and hook
 - `src/actionLibrary.js` - mock action library
 - `scripts/patch-rollup-native.cjs` - local Rollup build fallback patch
