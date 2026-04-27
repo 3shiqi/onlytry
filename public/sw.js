@@ -1,6 +1,6 @@
-const CACHE_NAME = 'onlytry-v1'
+const SHELL_CACHE_NAME = 'onlytry-shell-v0.6.1'
+const RUNTIME_CACHE_NAME = 'onlytry-runtime-v0.6.1'
 const APP_SHELL = [
-  '/',
   '/index.html',
   '/manifest.webmanifest',
   '/icon.svg',
@@ -9,9 +9,13 @@ const APP_SHELL = [
   '/apple-touch-icon.png',
 ]
 
+function isOnlytryCache(key) {
+  return key.startsWith('onlytry-shell-') || key.startsWith('onlytry-runtime-')
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
+    caches.open(SHELL_CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
   )
   self.skipWaiting()
 })
@@ -21,7 +25,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => isOnlytryCache(key) && key !== SHELL_CACHE_NAME && key !== RUNTIME_CACHE_NAME)
           .map((key) => caches.delete(key)),
       ),
     ),
@@ -42,7 +46,17 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html')),
+      fetch(event.request)
+        .then((networkResponse) => {
+          const responseClone = networkResponse.clone()
+
+          caches.open(SHELL_CACHE_NAME).then((cache) => {
+            cache.put('/index.html', responseClone)
+          })
+
+          return networkResponse
+        })
+        .catch(() => caches.match('/index.html')),
     )
     return
   }
@@ -55,7 +69,7 @@ self.addEventListener('fetch', (event) => {
 
       return fetch(event.request).then((networkResponse) => {
         const responseClone = networkResponse.clone()
-        caches.open(CACHE_NAME).then((cache) => {
+        caches.open(RUNTIME_CACHE_NAME).then((cache) => {
           cache.put(event.request, responseClone)
         })
         return networkResponse

@@ -2,7 +2,7 @@
 
 A minimalist adaptive sports training session tracker built with React, Vite, Tailwind CSS, Lucide, and Framer Motion.
 
-Current app version: `0.6.0`
+Current app version: `0.6.1`
 
 ## Documentation
 
@@ -22,6 +22,7 @@ Latest release highlights:
 - monthly-grid Calendar page with historical logs and future projections
 - Dexie persistence for in-app training history and external sport logs
 - automatic rest cadence in future planning plus tap-to-inspect day details
+- PWA cache refresh fix so deployed UI updates reach installed clients more reliably
 
 ## Version Management
 

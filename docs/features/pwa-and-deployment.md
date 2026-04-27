@@ -25,6 +25,17 @@ Allow `onlytry` to run like a lightweight installable app on iPhone and remain e
 - Apple touch icon
 - standard PWA icons
 
+### Service Worker Strategy
+
+Current strategy:
+
+- versioned shell cache and runtime cache
+- navigation requests are network-first
+- `/index.html` is refreshed from network whenever available
+- static assets can still be cached for repeat launches
+
+This is important because product updates should not leave installed iPhone users stuck on an older app shell.
+
 ### iPhone Usage
 
 Recommended flow:

@@ -3,6 +3,18 @@
 This file tracks human-readable project history by semantic version.
 Git remains the detailed source of truth.
 
+## [0.6.1] - 2026-04-27
+
+### Fixed
+
+- versioned the PWA service-worker caches so deployed UI changes do not stay pinned to an older cached shell
+- switched navigation handling to network-first so `index.html` updates can bring in the latest calendar UI
+- triggered a post-register service-worker update check in production boot
+
+### Changed
+
+- production clients should now pick up the monthly calendar build more reliably after deploy, especially on iPhone home-screen installs
+
 ## [0.6.0] - 2026-04-27
 
 ### Added
