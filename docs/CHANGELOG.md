@@ -3,6 +3,27 @@
 This file tracks human-readable project history by semantic version.
 Git remains the detailed source of truth.
 
+## [0.7.0] - 2026-05-06
+
+### Added
+
+- native SwiftUI iOS app scaffold with `Session`, `Library`, and `Calendar` tabs
+- `ExerciseModel.swift` with the V4 medical-grade SwiftData exercise model
+- SwiftData seed data including a detailed `保加利亚分腿蹲` example
+- native workout planner that reads from the local exercise database and generates today's session
+- exercise-library UI for browsing and adding professionally tagged exercises
+- native iOS feature and handover documentation for future maintenance
+
+### Changed
+
+- iOS target now launches through SwiftUI instead of the Capacitor storyboard bridge
+- iOS minimum deployment target is now `17.0` to support SwiftData
+- native app display name and bundle ID now use `Onlytry` / `com.sunshiqi.onlytry`
+- native marketing version is aligned with project version `0.7.0`
+- native seed data now fills the default Warm-up, Power, Strength, and Core quota
+- native target no longer packages stale Capacitor web resources
+- iOS setup docs now point to `ios/App/App.xcodeproj` for native development
+
 ## [0.6.1] - 2026-04-27
 
 ### Fixed

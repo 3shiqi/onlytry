@@ -78,6 +78,31 @@ The repository fixes that through:
 - Root file: `CLOUDFLARE_PAGES_SETUP.md`
 - Root file: `IOS_SETUP.md`
 
+## Native iOS App
+
+The repository also contains a native iOS scaffold under `ios/App`.
+
+Current native iOS direction:
+
+- SwiftUI app entry in `OnlytryApp.swift`
+- SwiftData persistence for `Exercise` and `SessionLog`
+- three tabs: `Session`, `Library`, `Calendar`
+- minimum iOS target `17.0`
+- app display name `Onlytry`
+- bundle ID `com.sunshiqi.onlytry`
+
+Open:
+
+- `ios/App/App.xcodeproj`
+
+The native target no longer needs the Capacitor storyboard bridge for launch.
+It also no longer packages the old Capacitor `public`, `config.xml`, or `Main.storyboard` resources.
+
+Detailed native implementation notes live in:
+
+- `docs/features/native-ios-app.md`
+- `docs/handovers/native-ios-app.md`
+
 ## When To Update This Doc
 
 Update this file if any of these change:
@@ -88,4 +113,5 @@ Update this file if any of these change:
 - build command
 - service worker strategy
 - install flow
+- native iOS target structure
 - local build workaround

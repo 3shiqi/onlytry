@@ -2,7 +2,7 @@
 
 A minimalist adaptive sports training session tracker built with React, Vite, Tailwind CSS, Lucide, and Framer Motion.
 
-Current app version: `0.6.1`
+Current app version: `0.7.0`
 
 ## Documentation
 
@@ -19,6 +19,9 @@ When code changes, update the related feature doc and `docs/CHANGELOG.md` in the
 
 Latest release highlights:
 
+- native SwiftUI iOS scaffold with Session, Library, and Calendar tabs
+- SwiftData V4 medical-grade exercise model and seed data
+- native iOS app identity set to Onlytry with bundle ID `com.sunshiqi.onlytry`
 - monthly-grid Calendar page with historical logs and future projections
 - Dexie persistence for in-app training history and external sport logs
 - automatic rest cadence in future planning plus tap-to-inspect day details
@@ -85,3 +88,7 @@ This project includes:
 - `src/trainingState.jsx` - global training state provider and hook
 - `src/actionLibrary.js` - mock action library
 - `scripts/patch-rollup-native.cjs` - local Rollup build fallback patch
+- `ios/App/App/ExerciseModel.swift` - native SwiftData medical-grade exercise model
+- `ios/App/App/OnlytryApp.swift` - native iOS SwiftUI app entry
+- `docs/features/native-ios-app.md` - native iOS feature contract
+- `docs/handovers/native-ios-app.md` - native iOS maintenance handover

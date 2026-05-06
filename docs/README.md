@@ -24,6 +24,8 @@ If you want to change a specific feature later:
   - UI, interaction, motion, and visual rules
 - `features/`
   - one document per major product capability
+- `handovers/`
+  - deeper maintenance and onboarding notes for complex subsystems
 - `process/`
   - how to keep documentation synchronized with code
 - `releases/`
@@ -47,8 +49,10 @@ For most future work, edit in this order:
 - `features/calendar-page.md`
 - `features/training-state.md`
 - `features/workout-engine.md`
+- `handovers/workout-planning-algorithm.md`
 - `features/session-execution.md`
 - `features/top-tag-filters.md`
 - `features/pwa-and-deployment.md`
+- `features/native-ios-app.md`
 - `process/doc-sync-workflow.md`
 - `process/versioning-policy.md`

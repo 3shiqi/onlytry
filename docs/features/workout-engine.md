@@ -15,6 +15,10 @@ Generate a single workout plan that is:
 - `src/workoutEngine.js`
 - `src/actionLibrary.js`
 
+Deep-dive handover:
+
+- `docs/handovers/workout-planning-algorithm.md`
+
 ## Inputs
 
 ### Preferences
